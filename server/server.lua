@@ -45,7 +45,42 @@ AddEventHandler('onResourceStart', function (res)
 	query = true
 end)
 
+-- Keep The Cache Update
+RegisterNetEvent('esx:playerLoaded')
+AddEventHandler('esx:playerLoaded', function(source, xPlayer, job)
+	local xPly = xPlayer
+	if not employeeData[xPly.job.name] then
+		employeeData[xPly.job.name] = {}
+		employeeData[xPly.job.name][xPly.identifier] = {
+			identifier = xPly.identifier,
+			name = xPly.getName,
+			grade = xPly.job.grade_label,
+		}
+	end
+end)
 
+-- Keep The Cache Update When Setjob Via Command
+RegisterNetEvent('esx:setJob', function (source, job, lastjob)
+	local xPlayer = ESX.GetPlayerFromId(source)
+
+	if lastjob.name ~= job.name or lastjob.grade_label ~= job.grade_label then
+		if employeeData[lastjob.name] then
+			employeeData[lastjob.name][xPlayer.identifier] = nil
+		end
+
+		if not employeeData[job.name] then
+			employeeData[job.name] = {}
+		end
+
+		employeeData[job.name][xPlayer.identifier] = {
+			identifier = xPlayer.identifier,
+			name = xPlayer.getName(),
+			grade = job.grade_label,
+		}
+	end
+end)
+
+-- need to loop to prevent nill value
 local function fetchEmployee(job, name)
 	local employees = {}
 	local id = 0
@@ -195,6 +230,7 @@ lib.callback.register('sr_society:server:fireEmployee', function (src, data)
 		})
 		xPlayer.showNotification('Berhasil memecat player tersebut')
 	end
+	-- persistence update
 	if employeeData[data.job][data.identifier] then
 		employeeData[data.job][data.identifier] = nil
 	end
@@ -238,6 +274,7 @@ lib.callback.register('sr_society:server:setPlayerRank', function (src, data)
 			job , data.grade, data.identifier
 		})
 	end
+	-- persistence update
 	employeeData[job][data.identifier].grade = Jobs[job].grades[tostring(data.grade)].label
 	Wait(100)
 	local employees = fetchEmployee(data.job, xPlayer.getName())
