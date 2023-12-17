@@ -265,7 +265,6 @@ lib.callback.register('sr_society:server:setPlayerRank', function (src, data)
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local job = data.job
 	local xTarget = ESX.GetPlayerFromIdentifier(data.identifier)
-	local employees = {}
 	if xTarget then
 		xTarget.setJob(job, data.grade)
 		xTarget.showNotification('Kamu mendapat kenaikan jabatan')
@@ -295,8 +294,8 @@ lib.addCommand('migrasibcs', {
 	local uang = MySQL.single.await('SELECT money FROM jobs WHERE name = ?', {
 		args.job
 	})
-	print(uang.money)
 	if not uang then return end
+	print(uang.money)
 
 	TriggerEvent('esx_addonaccount:getSharedAccount', ('society_%s'):format(args.job), function (account)
 		if account then
